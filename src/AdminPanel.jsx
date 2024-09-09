@@ -269,6 +269,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Tabs, Tab, Typography, Box, Button, Grid, Card, CardContent, CardMedia, IconButton, TextField, Dialog, DialogTitle, DialogContent, Slide, Snackbar, Alert
 } from '@mui/material';
+
+
 import { Add, Edit, Delete, Visibility } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { db } from './firebaseConfig'; // Import your firebase configurations
@@ -292,6 +294,28 @@ const AdminPanel = () => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
 
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const usersCollection = collection(db, 'users'); // Assuming you have a 'users' collection
+        const userSnapshot = await getDocs(usersCollection);
+
+        const userData = userSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data() // Get user data including favorites and bookings
+        }));
+
+        setUsers(userData);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+
   // Fetch accommodations
   useEffect(() => {
     const fetchAccommodations = async () => {
@@ -301,22 +325,53 @@ const AdminPanel = () => {
     };
     fetchAccommodations();
   }, []);
-
   useEffect(() => {
     const fetchBookings = async () => {
       const querySnapshot = await getDocs(collection(db, 'bookings'));
-      const bookingsData = querySnapshot.docs.map(doc => ({ id: doc.id.toString(), ...doc.data() }));
-      setBookings(bookingsData);
+      const bookingsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // If userEmail is not directly in bookings, you might need to fetch user details
+      const enhancedBookings = await Promise.all(bookingsData.map(async (booking) => {
+        if (booking.userId) {
+          const userDoc = await getDoc(doc(db, 'users', booking.userId));
+          const userData = userDoc.exists() ? userDoc.data() : {};
+          return { ...booking, userEmail: userData.email || 'Unknown' };
+        }
+        return { ...booking, userEmail: 'Unknown' };
+      }));
+  
+      setBookings(enhancedBookings);
     };
     fetchBookings();
   }, []);
+  
+  // useEffect(() => {
+  //   const fetchBookings = async () => {
+  //     const querySnapshot = await getDocs(collection(db, 'bookings'));
+  //     const bookingsData = querySnapshot.docs.map(doc => ({ id: doc.id.toString(), ...doc.data() }));
+  //     setBookings(bookingsData);
+  //   };
+  //   fetchBookings();
+  // }, []);
+
+
+
 
   const handleDeleteBooking = async (bookingId, userEmail) => {
+    console.log('Booking ID:', bookingId);
+    console.log('User Email:', userEmail);
+  
     try {
       // Ensure bookingId is a string and not empty
       if (typeof bookingId !== 'string' || bookingId.trim() === '') {
         console.error('Invalid booking ID:', bookingId);
         throw new Error('Invalid booking ID');
+      }
+  
+      // Ensure userEmail is provided
+      if (!userEmail || typeof userEmail !== 'string') {
+        console.error('User email is not provided:', userEmail);
+        throw new Error('User email is required.');
       }
   
       // Create a reference to the Firestore document
@@ -329,12 +384,7 @@ const AdminPanel = () => {
       setBookings(prevBookings => prevBookings.filter(booking => booking.id !== bookingId));
   
       // Send cancellation email
-      if (userEmail) {
-        await sendCancellationEmail(userEmail, bookingId);
-      } else {
-        console.error('User email is not provided.');
-        throw new Error('User email is required.');
-      }
+      await sendCancellationEmail(userEmail, bookingId);
   
       // Show success message
       setSnackbarMessage('Booking cancelled and email sent to the user.');
@@ -345,6 +395,27 @@ const AdminPanel = () => {
       setSnackbarOpen(true);
     }
   };
+
+  
+  // Placeholder function for sending a cancellation email
+const sendCancellationEmail = async (email, bookingId) => {
+  try {
+    // Implement the logic to send an email here
+    // For example, if using an email API or service:
+    // await emailService.send({
+    //   to: email,
+    //   subject: 'Booking Cancellation Confirmation',
+    //   text: `Your booking with ID ${bookingId} has been cancelled.`,
+    // });
+
+    // For demonstration, we'll log the email details
+    console.log(`Sending cancellation email to ${email} for booking ID ${bookingId}`);
+  } catch (error) {
+    console.error('Error sending cancellation email:', error);
+    throw new Error('Failed to send cancellation email');
+  }
+};
+
 
   // Handle booking cancellation
   // const handleDeleteBooking = async (bookingId, userEmail) => {
@@ -717,6 +788,9 @@ const AdminPanel = () => {
                 <Typography variant="h6" gutterBottom>
                   Booking ID: {booking.id}
                 </Typography>
+                <Typography variant="h6" gutterBottom>
+                User Email: {booking.userEmail || 'Unknown'}
+                </Typography>
                 <Typography variant="body2">
                   Room Type: {booking.roomType}
                 </Typography>
@@ -759,27 +833,23 @@ const AdminPanel = () => {
 
       {/* Users Tab */}
       {tabValue === 2 && (
-        <Box p={3}>
-          <Typography variant="h4" gutterBottom>Users</Typography>
-          <Grid container spacing={2}>
-            {users.map(user => (
-              <Grid item xs={12} sm={6} md={4} key={user.id}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h5">Email: {user.email}</Typography>
-                    <Typography variant="body2">
-  Favorites: {user.favorites ? user.favorites.length : 0}
-</Typography>
-<Typography variant="body2">
-  Bookings: {user.bookings ? user.bookings.length : 0}
-</Typography>
-
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+       <Box p={3}>
+       <Typography variant="h4" gutterBottom>Users</Typography>
+       <Grid container spacing={2}>
+         {users.map(user => (
+           <Grid item xs={12} sm={6} md={4} key={user.id}>
+             <Card>
+               <CardContent>
+                 <Typography variant="h5">Email: {user.email}</Typography>
+ 
+                
+ 
+               </CardContent>
+             </Card>
+           </Grid>
+         ))}
+       </Grid>
+     </Box>
       )}
 
       {/* View More Dialog */}
