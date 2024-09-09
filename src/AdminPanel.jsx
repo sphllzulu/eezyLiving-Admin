@@ -311,15 +311,31 @@ const AdminPanel = () => {
     fetchBookings();
   }, []);
 
-  // Handle booking cancellation
   const handleDeleteBooking = async (bookingId, userEmail) => {
     try {
-      await deleteDoc(doc(db, 'bookings', bookingId));
-      setBookings(bookings.filter(booking => booking.id !== bookingId));
-
+      // Ensure bookingId is a string and not empty
+      if (typeof bookingId !== 'string' || bookingId.trim() === '') {
+        console.error('Invalid booking ID:', bookingId);
+        throw new Error('Invalid booking ID');
+      }
+  
+      // Create a reference to the Firestore document
+      const bookingRef = doc(db, 'bookings', bookingId);
+  
+      // Delete the document from Firestore
+      await deleteDoc(bookingRef);
+  
+      // Update local state to reflect the deletion
+      setBookings(prevBookings => prevBookings.filter(booking => booking.id !== bookingId));
+  
       // Send cancellation email
-      await sendCancellationEmail(userEmail, bookingId); 
-
+      if (userEmail) {
+        await sendCancellationEmail(userEmail, bookingId);
+      } else {
+        console.error('User email is not provided.');
+        throw new Error('User email is required.');
+      }
+  
       // Show success message
       setSnackbarMessage('Booking cancelled and email sent to the user.');
       setSnackbarOpen(true);
@@ -329,6 +345,25 @@ const AdminPanel = () => {
       setSnackbarOpen(true);
     }
   };
+
+  // Handle booking cancellation
+  // const handleDeleteBooking = async (bookingId, userEmail) => {
+  //   try {
+  //     await deleteDoc(doc(db, 'bookings', bookingId));
+  //     setBookings(bookings.filter(booking => booking.id !== bookingId));
+
+  //     // Send cancellation email
+  //     await sendCancellationEmail(userEmail, bookingId); 
+
+  //     // Show success message
+  //     setSnackbarMessage('Booking cancelled and email sent to the user.');
+  //     setSnackbarOpen(true);
+  //   } catch (error) {
+  //     console.error('Error cancelling booking:', error);
+  //     setSnackbarMessage('Error cancelling booking.');
+  //     setSnackbarOpen(true);
+  //   }
+  // };
 
   
 
