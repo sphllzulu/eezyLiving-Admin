@@ -265,12 +265,12 @@
 
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import {
   Tabs, Tab, Typography, Box, Button, Grid, Card, CardContent, CardMedia, IconButton, TextField, Dialog, DialogTitle, DialogContent, Slide, Snackbar, Alert
 } from '@mui/material';
-
-
 import { Add, Edit, Delete, Visibility } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { db } from './firebaseConfig'; // Import your firebase configurations
@@ -290,10 +290,12 @@ const AdminPanel = () => {
   const [newAccommodation, setNewAccommodation] = useState({ type: '', price: '', image: '' });
   const [viewMoreOpen, setViewMoreOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
 
+  const formspreeEndpoint = 'https://formspree.io/f/meojwldj'; // Replace with your Formspree form ID
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -345,50 +347,40 @@ const AdminPanel = () => {
     fetchBookings();
   }, []);
   
-  // useEffect(() => {
-  //   const fetchBookings = async () => {
-  //     const querySnapshot = await getDocs(collection(db, 'bookings'));
-  //     const bookingsData = querySnapshot.docs.map(doc => ({ id: doc.id.toString(), ...doc.data() }));
-  //     setBookings(bookingsData);
-  //   };
-  //   fetchBookings();
-  // }, []);
-
-
-
 
   const handleDeleteBooking = async (bookingId, userEmail) => {
-    console.log('Booking ID:', bookingId);
-    console.log('User Email:', userEmail);
-  
     try {
-      // Ensure bookingId is a string and not empty
       if (typeof bookingId !== 'string' || bookingId.trim() === '') {
-        console.error('Invalid booking ID:', bookingId);
         throw new Error('Invalid booking ID');
       }
-  
-      // Ensure userEmail is provided
       if (!userEmail || typeof userEmail !== 'string') {
-        console.error('User email is not provided:', userEmail);
         throw new Error('User email is required.');
       }
-  
-      // Create a reference to the Firestore document
+
       const bookingRef = doc(db, 'bookings', bookingId);
-  
-      // Delete the document from Firestore
       await deleteDoc(bookingRef);
-  
-      // Update local state to reflect the deletion
       setBookings(prevBookings => prevBookings.filter(booking => booking.id !== bookingId));
-  
-      // Send cancellation email
-      await sendCancellationEmail(userEmail, bookingId);
-  
-      // Show success message
-      setSnackbarMessage('Booking cancelled and email sent to the user.');
-      setSnackbarOpen(true);
+
+      // Send email using Formspree
+      const response = await fetch(formspreeEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'Booking Cancellation',
+          _replyto: userEmail,
+          _subject: 'Booking Cancellation Confirmation',
+          message: `Your booking with ID ${bookingId} has been cancelled.`
+        }),
+      });
+
+      if (response.ok) {
+        setSnackbarMessage('Booking cancelled and email sent to the user.');
+        setSnackbarOpen(true);
+      } else {
+        throw new Error('Error sending email');
+      }
     } catch (error) {
       console.error('Error cancelling booking:', error);
       setSnackbarMessage('Error cancelling booking.');
@@ -396,36 +388,38 @@ const AdminPanel = () => {
     }
   };
 
-  
-  // Placeholder function for sending a cancellation email
-const sendCancellationEmail = async (email, bookingId) => {
-  try {
-    // Implement the logic to send an email here
-    // For example, if using an email API or service:
-    // await emailService.send({
-    //   to: email,
-    //   subject: 'Booking Cancellation Confirmation',
-    //   text: `Your booking with ID ${bookingId} has been cancelled.`,
-    // });
-
-    // For demonstration, we'll log the email details
-    console.log(`Sending cancellation email to ${email} for booking ID ${bookingId}`);
-  } catch (error) {
-    console.error('Error sending cancellation email:', error);
-    throw new Error('Failed to send cancellation email');
-  }
-};
 
 
-  // Handle booking cancellation
+
   // const handleDeleteBooking = async (bookingId, userEmail) => {
+  //   console.log('Booking ID:', bookingId);
+  //   console.log('User Email:', userEmail);
+  
   //   try {
-  //     await deleteDoc(doc(db, 'bookings', bookingId));
-  //     setBookings(bookings.filter(booking => booking.id !== bookingId));
-
+  //     // Ensure bookingId is a string and not empty
+  //     if (typeof bookingId !== 'string' || bookingId.trim() === '') {
+  //       console.error('Invalid booking ID:', bookingId);
+  //       throw new Error('Invalid booking ID');
+  //     }
+  
+  //     // Ensure userEmail is provided
+  //     if (!userEmail || typeof userEmail !== 'string') {
+  //       console.error('User email is not provided:', userEmail);
+  //       throw new Error('User email is required.');
+  //     }
+  
+  //     // Create a reference to the Firestore document
+  //     const bookingRef = doc(db, 'bookings', bookingId);
+  
+  //     // Delete the document from Firestore
+  //     await deleteDoc(bookingRef);
+  
+  //     // Update local state to reflect the deletion
+  //     setBookings(prevBookings => prevBookings.filter(booking => booking.id !== bookingId));
+  
   //     // Send cancellation email
-  //     await sendCancellationEmail(userEmail, bookingId); 
-
+  //     await sendCancellationEmail(userEmail, bookingId);
+  
   //     // Show success message
   //     setSnackbarMessage('Booking cancelled and email sent to the user.');
   //     setSnackbarOpen(true);
@@ -437,24 +431,30 @@ const sendCancellationEmail = async (email, bookingId) => {
   // };
 
   
+  // Placeholder function for sending a cancellation email
+// const sendCancellationEmail = async (email, bookingId) => {
+//   try {
+//     // Implement the logic to send an email here
+//     // For example, if using an email API or service:
+//     // await emailService.send({
+//     //   to: email,
+//     //   subject: 'Booking Cancellation Confirmation',
+//     //   text: `Your booking with ID ${bookingId} has been cancelled.`,
+//     // });
+
+//     // For demonstration, we'll log the email details
+//     console.log(`Sending cancellation email to ${email} for booking ID ${bookingId}`);
+//   } catch (error) {
+//     console.error('Error sending cancellation email:', error);
+//     throw new Error('Failed to send cancellation email');
+//   }
+// };
 
 
-  // // Fetch bookings
-  // useEffect(() => {
-  //   const fetchBookings = async () => {
-  //     const querySnapshot = await getDocs(collection(db, 'bookings'));
-  //     const bookingsData = querySnapshot.docs.map(doc => ({ id: doc.id.toString(), ...doc.data() }));
-  //     setBookings(bookingsData);
-  //   };
-  //   fetchBookings();
-  // }, []);
-
-
-
-
-
+  
 
   // Fetch users and their favorites/bookings
+  
   useEffect(() => {
     const fetchUsers = async () => {
       const querySnapshot = await getDocs(collection(db, 'users'));
@@ -475,6 +475,9 @@ const sendCancellationEmail = async (email, bookingId) => {
     setNewAccommodation({ type: '', price: '', image: '' });
   };
 
+   
+
+
   const handleDeleteAccommodation = async (id) => {
     await deleteDoc(doc(db, 'accommodation', id));
     setAccommodations(accommodations.filter(acc => acc.id !== id));
@@ -483,27 +486,7 @@ const sendCancellationEmail = async (email, bookingId) => {
 
 
 
-  // const handleViewMore = async (id) => {
-  //   if (!id) {
-  //     console.error('ID is undefined or null');
-  //     return;
-  //   }
   
-  //   const stringId = id.toString(); 
-  //   try {
-  //     const docRef = doc(db, 'accommodation', stringId);
-  //     const docSnap = await getDoc(docRef);
-  
-  //     if (docSnap.exists()) {
-  //       setSelectedAccommodation(docSnap.data());
-  //       setViewMoreOpen(true);
-  //     } else {
-  //       console.log('No such document!');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching document:', error.message);
-  //   }
-  // };
   const handleViewMore = async (id) => {
     if (!id) {
       console.error('ID is undefined or null');
@@ -568,30 +551,7 @@ const sendCancellationEmail = async (email, bookingId) => {
   };
   
 
-  // const handleSaveChanges = async () => {
-  //   if (!selectedAccommodation?.id) return;
-
-  //   const updatedData = {
-  //     ...selectedAccommodation,
-  //     amenities: Array.isArray(selectedAccommodation.amenities) ? selectedAccommodation.amenities : [],
-  //     policies: Array.isArray(selectedAccommodation.policies) ? selectedAccommodation.policies : []
-  //   };
-
-  //   try {
-  //     await setDoc(doc(db, 'accommodation', selectedAccommodation.id), updatedData);
-  //     setAccommodations(accommodations.map(acc => (acc.id === updatedData.id ? updatedData : acc)));
-  //     handleCloseViewMore();
-
-  //     // Show success popup
-  //     setSnackbarMessage('Changes saved successfully');
-  //     setSnackbarOpen(true);
-  //   } catch (error) {
-  //     console.error('Error updating document:', error.message);
-  //     setSnackbarMessage('Error saving changes');
-  //     setSnackbarOpen(true);
-  //   }
-  // };
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -1009,6 +969,5 @@ const sendCancellationEmail = async (email, bookingId) => {
 };
 
 export default AdminPanel;
-
 
 
