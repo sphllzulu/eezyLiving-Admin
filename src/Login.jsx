@@ -27,8 +27,8 @@ const slideIn = keyframes`
 // Styled Paper component
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  backgroundColor: 'rgba(0, 0, 0, 0.8)', // Black background
-  color: '#fff', // White text
+  backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+  color: '#fff', 
   borderRadius: '15px',
   boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
   animation: `${slideIn} 0.8s ease-out`,
@@ -65,10 +65,11 @@ const Login = () => {
     <Box
       sx={{
         minHeight: '100vh',
+        width:'100%',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#1c1c1e', // Dark background
+        backgroundColor: '#1c1c1e', 
       }}
     >
       <StyledPaper elevation={10}>
@@ -133,10 +134,10 @@ const Login = () => {
               variant="contained"
               onClick={handleLogin}
               sx={{
-                backgroundColor: '#7c4dff', // Purple background
+                backgroundColor: 'purple', 
                 color: '#fff',
                 '&:hover': {
-                  backgroundColor: '#bb86fc',
+                  backgroundColor: 'purple',
                 },
                 transition: 'background-color 0.3s ease',
               }}
