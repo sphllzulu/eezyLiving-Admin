@@ -594,7 +594,7 @@ const AdminPanel = () => {
                   <TableCell>Booking ID</TableCell>
                   <TableCell>UserID ID</TableCell>
                   <TableCell>User</TableCell>
-                  <TableCell>Accommodation</TableCell>
+                  <TableCell>Room Type</TableCell>
                   <TableCell>Price</TableCell>
                   <TableCell>CheckIn</TableCell>
                   <TableCell>CheckOut</TableCell>
