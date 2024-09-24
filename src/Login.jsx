@@ -14,7 +14,7 @@ import {
 import { styled } from '@mui/system';
 import { keyframes } from '@emotion/react';
 
-// Define admin credentials
+//  admin credentials
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = 'admin123';
 
@@ -86,14 +86,14 @@ const Login = () => {
           InputLabelProps={{ style: { color: 'white' } }}
           InputProps={{
             style: {
-              color: 'white', // Input text color
-              borderColor: '#7c4dff', // Purple border for the input
+              color: 'white', 
+              borderColor: '#7c4dff', 
             },
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              '& fieldset': { borderColor: '#7c4dff' }, // Purple border
-              '&:hover fieldset': { borderColor: '#bb86fc' }, // Hover effect
+              '& fieldset': { borderColor: '#7c4dff' }, 
+              '&:hover fieldset': { borderColor: '#bb86fc' }, 
               '&.Mui-focused fieldset': { borderColor: '#bb86fc' },
             },
           }}

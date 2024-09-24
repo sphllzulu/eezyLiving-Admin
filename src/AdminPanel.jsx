@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
 import { motion } from "framer-motion";
-import { db } from "./firebaseConfig"; // Import your firebase configurations
+import { db } from "./firebaseConfig"; 
 import {
   doc,
   setDoc,
@@ -376,7 +376,7 @@ const AdminPanel = () => {
   // functions for reviews
   useEffect(() => {
     const fetchReviews = async () => {
-      const reviewsCollection = collection(db, "reviews"); // Ensure 'reviews' is the correct collection name
+      const reviewsCollection = collection(db, "reviews");
       const reviewDocs = await getDocs(reviewsCollection);
       setReviews(reviewDocs.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
@@ -437,7 +437,7 @@ const AdminPanel = () => {
                   borderRadius: "8px",
                   "& .MuiInputBase-root": {
                     borderRadius: "8px",
-                    border: "2px solid purple", // Purple borders
+                    border: "2px solid purple", 
                     padding: "10px",
                   },
                   "& .MuiOutlinedInput-notchedOutline": {
