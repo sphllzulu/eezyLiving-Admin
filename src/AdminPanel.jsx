@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ReplyDialog } from "./ReviewReply";
 import {
   Tabs,
   Tab,
@@ -41,6 +42,7 @@ import {
   Paper,
 } from "@mui/material";
 import axios from "axios";
+import Gallery from "./Gallery";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -62,6 +64,10 @@ const AdminPanel = () => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
   const [reviews, setReviews] = useState([]);
+  // const [reviews, setReviews] = useState([]); 
+  const [openReplyDialog, setOpenReplyDialog] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState(null);
+
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -384,6 +390,39 @@ const AdminPanel = () => {
     fetchReviews();
   }, []);
 
+
+// to handle review reply
+const handleOpenReplyDialog = (reviewId) => {
+  setSelectedReviewId(reviewId);
+  setOpenReplyDialog(true);
+};
+
+const handleCloseReplyDialog = () => {
+  setOpenReplyDialog(false);
+  setSelectedReviewId(null);
+};
+
+const handleSubmitReply = async (reviewId, replyText) => {
+  try {
+    const reviewRef = doc(db, 'reviews', reviewId);
+    await updateDoc(reviewRef, {
+      adminReply: replyText,
+      adminReplyTimestamp: new Date()
+    });
+    
+    // Update the local state to reflect the change
+    setReviews(reviews.map(review => 
+      review.id === reviewId 
+        ? { ...review, adminReply: replyText, adminReplyTimestamp: new Date() } 
+        : review
+    ));
+  } catch (error) {
+    console.error("Error updating review: ", error);
+    // Handle error (e.g., show an error message to the user)
+  }
+};
+
+
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
@@ -396,9 +435,11 @@ const AdminPanel = () => {
   return (
     <Box sx={{ width: "100%" }}>
       <Tabs value={tabValue} onChange={handleTabChange} centered>
-        <Tab label="Accommodations" />
+        <Tab label="Rooms" />
         <Tab label="Bookings" />
         <Tab label="Reviews" />
+        <Tab label="Gallery" />
+
       </Tabs>
 
       {tabValue === 0 && (
@@ -416,7 +457,7 @@ const AdminPanel = () => {
               paddingBottom: "10px",
             }}
           >
-            Manage Accommodations
+            Manage Rooms
           </Typography>
 
           {/* Form for adding accommodations */}
@@ -515,7 +556,7 @@ const AdminPanel = () => {
                   borderRadius: "8px",
                 }}
               >
-                Add Accommodation
+                Add Room
               </Button>
             </Grid>
           </Grid>
@@ -665,40 +706,71 @@ const AdminPanel = () => {
       {/* reviews tab */}
       {tabValue === 2 && (
         <Box p={3}>
-          <Typography variant="h4" gutterBottom>
-            Overall Hotel Reviews
-          </Typography>
-
-          {/* Fetch reviews from Firestore and display them */}
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Review ID</TableCell>
-                  <TableCell>User ID</TableCell>
-
-                  <TableCell>Review</TableCell>
-                  <TableCell>Rating</TableCell>
-                  <TableCell>Date</TableCell>
+        <Typography variant="h4" gutterBottom>
+          Overall Hotel Reviews
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Review ID</TableCell>
+                <TableCell>User ID</TableCell>
+                <TableCell>Review</TableCell>
+                <TableCell>Rating</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Admin Reply</TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {reviews.map((review) => (
+                <TableRow key={review.id}>
+                  <TableCell>{review.id}</TableCell>
+                  <TableCell>{review.userId}</TableCell>
+                  <TableCell>{review.reviewText}</TableCell>
+                  <TableCell>{review.rating}</TableCell>
+                  <TableCell>
+                    {new Date(review.timestamp).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {review.adminReply ? (
+                      <>
+                        <Typography variant="body2">{review.adminReply}</Typography>
+                        <Typography variant="caption">
+                          {new Date(review.adminReplyTimestamp).toLocaleString()}
+                        </Typography>
+                      </>
+                    ) : (
+                      'No reply yet'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={() => handleOpenReplyDialog(review.id)}
+                    >
+                      {review.adminReply ? 'Edit Reply' : 'Reply'}
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {reviews.map((review) => (
-                  <TableRow key={review.id}>
-                    <TableCell>{review.id}</TableCell>
-                    <TableCell>{review.userId}</TableCell>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <ReplyDialog
+          open={openReplyDialog}
+          handleClose={handleCloseReplyDialog}
+          handleSubmit={handleSubmitReply}
+          reviewId={selectedReviewId}
+        />
+      </Box>
+      
+      )}
 
-                    <TableCell>{review.reviewText}</TableCell>
-                    <TableCell>{review.rating}</TableCell>
-                    <TableCell>
-                      {new Date(review.timestamp).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+{tabValue === 3 && (
+       <Gallery/>
+      
       )}
 
       {/* View More Dialog */}

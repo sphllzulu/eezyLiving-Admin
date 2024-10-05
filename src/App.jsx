@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 // import AdminPanel from './components/AdminPanel';
 import Login from './Login';
 import AdminPanel from './AdminPanel';
+import Gallery from './Gallery';
 // import ManageAccommodations from './components/ManageAccommodations';
 // import ManageReservations from './components/ManageReservations';
 
@@ -13,6 +14,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/admin" element={<AdminPanel/>} />
+        <Route path="/gallery" element={<Gallery/>} />
 
         {/* <Route path="/admin" element={<AdminPanel />}>
           <Route path="accommodations" element={<ManageAccommodations />} />
