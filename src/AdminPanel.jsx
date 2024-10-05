@@ -43,6 +43,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import Gallery from "./Gallery";
+import Navbar from "./Navbar";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -433,8 +434,10 @@ const handleSubmitReply = async (reviewId, replyText) => {
 `;
 
   return (
+    <div>
+      <Navbar/>
     <Box sx={{ width: "100%" }}>
-      <Tabs value={tabValue} onChange={handleTabChange} centered>
+      <Tabs value={tabValue} onChange={handleTabChange} centered sx={{color:'black'}}>
         <Tab label="Rooms" />
         <Tab label="Bookings" />
         <Tab label="Reviews" />
@@ -958,6 +961,7 @@ const handleSubmitReply = async (reviewId, replyText) => {
         </Alert>
       </Snackbar>
     </Box>
+    </div>
   );
 };
 

@@ -109,11 +109,11 @@ const Gallery = () => {
             id="image-upload"
           />
           <label htmlFor="image-upload">
-            <Button variant="contained" component="span" sx={{ mr: 2 }}>
+            <Button variant="contained" component="span" sx={{ mr: 2, background:'purple' }}>
               Choose File
             </Button>
           </label>
-          <Button type="submit" variant="contained" color="primary" disabled={loading}>
+          <Button type="submit" variant="contained" color="primary"  sx={{background:'purple'}} disabled={loading}>
             {loading ? <CircularProgress size={24} /> : (editImageId ? 'Update' : 'Upload')}
           </Button>
         </Box>
@@ -132,7 +132,7 @@ const Gallery = () => {
               <Box sx={{ p: 2 }}>
                 <Typography variant="h6">{image.name}</Typography>
                 {currentUser && (
-                  <Box sx={{ mt: 1 }}>
+                  <Box sx={{ mt: 1, display:'flex', justifyContent:'space-between'}}>
                     <IconButton onClick={() => handleEditImage(image)}>
                       <EditIcon />
                     </IconButton>
