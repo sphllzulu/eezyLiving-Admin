@@ -44,6 +44,8 @@ import {
 import axios from "axios";
 import Gallery from "./Gallery";
 import Navbar from "./Navbar";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from './firebaseConfig'; 
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -58,6 +60,7 @@ const AdminPanel = () => {
     price: "",
     image: "",
   });
+  const [imageFile, setImageFile] = useState(null);
   const [viewMoreOpen, setViewMoreOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [searchId, setSearchId] = useState("");
@@ -65,6 +68,8 @@ const AdminPanel = () => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
   const [reviews, setReviews] = useState([]);
+
+  const [uploadProgress, setUploadProgress] = useState(0);
   // const [reviews, setReviews] = useState([]); 
   const [openReplyDialog, setOpenReplyDialog] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState(null);
@@ -291,11 +296,98 @@ const AdminPanel = () => {
     setTabValue(newValue);
   };
 
+  // const handleAddAccommodation = async () => {
+  //   const newId = Date.now().toString();
+  //   await setDoc(doc(db, "accommodation", newId), newAccommodation);
+  //   setAccommodations([...accommodations, { id: newId, ...newAccommodation }]);
+  //   setNewAccommodation({ type: "", price: "", image: "" });
+  // };
+
+  // to add a new room
+ 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+  };
+
+  const handleUploadImage = async () => {
+    if (!imageFile) {
+      alert("Please select an image first.");
+      return;
+    }
+    
+    const storageRef = ref(storage, `accommodation_images/${Date.now()}_${imageFile.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error('Upload failed:', error);
+        alert("Image upload failed. Please try again.");
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setSelectedAccommodation(prev => ({ ...prev, image: downloadURL }));
+          setSnackbarMessage("Image uploaded successfully!");
+          setSnackbarOpen(true);
+          setUploadProgress(0);
+        });
+      }
+    );
+  };
+
+
+ 
+
+ 
+ 
+  // const handleAddAccommodation = async () => {
+  //   if (!newAccommodation.type || !newAccommodation.price || !newAccommodation.image) {
+  //     alert("Please fill in all fields and upload an image.");
+  //     return;
+  //   }
+  
+  //   try {
+  //     const newId = Date.now().toString(); // Generate a unique ID
+  
+  //     // Add the new accommodation to Firestore
+  //     await setDoc(doc(db, "accommodation", newId), newAccommodation);
+  
+  //     // Update local state
+  //     setAccommodations([...accommodations, { id: newId, ...newAccommodation }]);
+  
+  //     // Reset the form
+  //     setNewAccommodation({ type: "", price: "", image: "" });
+  //     setImageFile(null); // Reset the image file state
+  //     alert("Accommodation added successfully!");
+  //   } catch (error) {
+  //     console.error("Error adding accommodation: ", error);
+  //     alert("Failed to add accommodation. Please try again.");
+  //   }
+  // };
   const handleAddAccommodation = async () => {
-    const newId = Date.now().toString();
-    await setDoc(doc(db, "accommodation", newId), newAccommodation);
-    setAccommodations([...accommodations, { id: newId, ...newAccommodation }]);
-    setNewAccommodation({ type: "", price: "", image: "" });
+    if (!newAccommodation.type || !newAccommodation.price || !newAccommodation.image) {
+      alert("Please fill in all fields and upload an image.");
+      return;
+    }
+  
+    try {
+      const newId = Date.now().toString();
+      await setDoc(doc(db, "accommodation", newId), newAccommodation);
+      setAccommodations([...accommodations, { id: newId, ...newAccommodation }]);
+      setNewAccommodation({ type: "", price: "", image: "" });
+      setImageFile(null);
+      setSnackbarMessage("Accommodation added successfully!");
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error("Error adding accommodation: ", error);
+      setSnackbarMessage("Failed to add accommodation. Please try again.");
+      setSnackbarOpen(true);
+    }
   };
 
   const handleDeleteAccommodation = async (id) => {
@@ -331,43 +423,83 @@ const AdminPanel = () => {
     setSelectedAccommodation(null);
   };
 
-  const handleSaveChanges = async () => {
-    if (!selectedAccommodation?.id) {
-      console.error("No accommodation ID found.");
-      return;
-    }
+  
+const handleSaveChanges = async () => {
+  if (!selectedAccommodation?.id) {
+    console.error("No accommodation ID found.");
+    return;
+  }
 
-    const updatedData = {
-      ...selectedAccommodation,
-      amenities: Array.isArray(selectedAccommodation.amenities)
-        ? selectedAccommodation.amenities
-        : [],
-      policies: Array.isArray(selectedAccommodation.policies)
-        ? selectedAccommodation.policies
-        : [],
-    };
-
-    try {
-      await setDoc(
-        doc(db, "accommodation", selectedAccommodation.id),
-        updatedData
-      );
-      setAccommodations(
-        accommodations.map((acc) =>
-          acc.id === updatedData.id ? updatedData : acc
-        )
-      );
-      handleCloseViewMore();
-
-      // Show success popup
-      setSnackbarMessage("Changes saved successfully");
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error("Error updating accommodation:", error.message);
-      setSnackbarMessage("Error saving changes");
-      setSnackbarOpen(true);
-    }
+  // Ensure amenities and policies are in the correct format
+  const updatedData = {
+    ...selectedAccommodation,
+    amenities: Array.isArray(selectedAccommodation.amenities)
+      ? selectedAccommodation.amenities
+      : [],
+    policies: Array.isArray(selectedAccommodation.policies)
+      ? selectedAccommodation.policies
+      : [],
   };
+
+  try {
+    // Update Firestore document with new details, including the image URL
+    await setDoc(doc(db, "accommodation", selectedAccommodation.id), updatedData);
+
+    // Update local accommodations state
+    setAccommodations(
+      accommodations.map((acc) =>
+        acc.id === updatedData.id ? updatedData : acc
+      )
+    );
+
+    handleCloseViewMore();
+
+    // Show success popup
+    setSnackbarMessage("Changes saved successfully");
+    setSnackbarOpen(true);
+  } catch (error) {
+    console.error("Error updating accommodation:", error.message);
+    setSnackbarMessage("Error saving changes");
+    setSnackbarOpen(true);
+  }
+};
+  // const handleSaveChanges = async () => {
+  //   if (!selectedAccommodation?.id) {
+  //     console.error("No accommodation ID found.");
+  //     return;
+  //   }
+
+  //   const updatedData = {
+  //     ...selectedAccommodation,
+  //     amenities: Array.isArray(selectedAccommodation.amenities)
+  //       ? selectedAccommodation.amenities
+  //       : [],
+  //     policies: Array.isArray(selectedAccommodation.policies)
+  //       ? selectedAccommodation.policies
+  //       : [],
+  //   };
+
+  //   try {
+  //     await setDoc(
+  //       doc(db, "accommodation", selectedAccommodation.id),
+  //       updatedData
+  //     );
+  //     setAccommodations(
+  //       accommodations.map((acc) =>
+  //         acc.id === updatedData.id ? updatedData : acc
+  //       )
+  //     );
+  //     handleCloseViewMore();
+
+  //     // Show success popup
+  //     setSnackbarMessage("Changes saved successfully");
+  //     setSnackbarOpen(true);
+  //   } catch (error) {
+  //     console.error("Error updating accommodation:", error.message);
+  //     setSnackbarMessage("Error saving changes");
+  //     setSnackbarOpen(true);
+  //   }
+  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -447,172 +579,135 @@ const handleSubmitReply = async (reviewId, replyText) => {
 
       {tabValue === 0 && (
         <Box p={3}>
-          {/* Accommodations Tab */}
-          {/* Title */}
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{
-              textAlign: "center",
-              fontWeight: "bold",
-              color: "purple",
-              borderBottom: "2px solid purple",
-              paddingBottom: "10px",
-            }}
-          >
-            Manage Rooms
-          </Typography>
-
-          {/* Form for adding accommodations */}
-          <Grid container spacing={2} sx={{ marginTop: 2 }}>
-            {/* Type Input */}
-            <Grid item xs={4}>
-              <TextField
-                label="Type"
-                value={newAccommodation.type}
-                onChange={(e) =>
-                  setNewAccommodation({
-                    ...newAccommodation,
-                    type: e.target.value,
-                  })
-                }
-                fullWidth
-                sx={{
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            textAlign: "center",
+            fontWeight: "bold",
+            color: "purple",
+            borderBottom: "2px solid purple",
+            paddingBottom: "10px",
+          }}
+        >
+          Manage Rooms
+        </Typography>
+  
+        {/* Form for adding accommodations */}
+        <Grid container spacing={2} sx={{ marginTop: 2 }}>
+          {/* Type Input */}
+          <Grid item xs={4}>
+            <TextField
+              label="Type"
+              value={newAccommodation.type}
+              onChange={(e) => setNewAccommodation({ ...newAccommodation, type: e.target.value })}
+              fullWidth
+              sx={{
+                borderRadius: "8px",
+                "& .MuiInputBase-root": {
                   borderRadius: "8px",
-                  "& .MuiInputBase-root": {
-                    borderRadius: "8px",
-                    border: "2px solid purple", 
-                    padding: "10px",
-                  },
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "purple",
-                  },
-                }}
-              />
-            </Grid>
-
-            {/* Price Input */}
-            <Grid item xs={4}>
-              <TextField
-                label="Price"
-                value={newAccommodation.price}
-                onChange={(e) =>
-                  setNewAccommodation({
-                    ...newAccommodation,
-                    price: e.target.value,
-                  })
-                }
-                fullWidth
-                sx={{
-                  borderRadius: "8px",
-                  "& .MuiInputBase-root": {
-                    borderRadius: "8px",
-                    border: "2px solid purple",
-                    padding: "10px",
-                  },
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "purple",
-                  },
-                }}
-              />
-            </Grid>
-
-            {/* Image URL Input */}
-            <Grid item xs={4}>
-              <TextField
-                label="Image URL"
-                value={newAccommodation.image}
-                onChange={(e) =>
-                  setNewAccommodation({
-                    ...newAccommodation,
-                    image: e.target.value,
-                  })
-                }
-                fullWidth
-                sx={{
-                  borderRadius: "8px",
-                  "& .MuiInputBase-root": {
-                    borderRadius: "8px",
-                    border: "2px solid purple",
-                    padding: "10px",
-                  },
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "purple",
-                  },
-                }}
-              />
-            </Grid>
-
-            {/* Button */}
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                onClick={handleAddAccommodation}
-                startIcon={<Add />}
-                sx={{
-                  backgroundColor: "black",
-                  "&:hover": {
-                    backgroundColor: "#6a0dad",
-                  },
-                  fontSize: "16px",
-                  padding: "10px 20px",
-                  borderRadius: "8px",
-                }}
-              >
-                Add Room
-              </Button>
-            </Grid>
+                  border: "2px solid purple",
+                  padding: "10px",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "purple",
+                },
+              }}
+            />
           </Grid>
-
-          {/* Displaying accommodations */}
-          <Grid container spacing={4} sx={{ marginTop: 2 }}>
-            {accommodations.map((acc) => (
-              <Grid item xs={12} sm={6} md={3} key={acc.id}>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card
-                    sx={{
-                      border: "2px solid purple",
-                      borderRadius: "8px",
-                      boxShadow: 3,
-                    }}
-                  >
-                    <CardMedia
-                      component="img"
-                      height="140"
-                      image={acc.image}
-                      alt={acc.type}
-                    />
-                    <CardContent>
-                      <Typography variant="h5">{acc.type}</Typography>
-                      <Typography variant="body2">
-                        Price: R{acc.price}
-                      </Typography>
-                    </CardContent>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "8px",
-                      }}
-                    >
-                      <IconButton
-                        onClick={() => handleDeleteAccommodation(acc.id)}
-                      >
-                        <Delete />
-                      </IconButton>
-                      <IconButton onClick={() => handleViewMore(acc.id)}>
-                        <Visibility />
-                      </IconButton>
-                    </Box>
-                  </Card>
-                </motion.div>
-              </Grid>
-            ))}
+  
+          {/* Price Input */}
+          <Grid item xs={4}>
+            <TextField
+              label="Price"
+              value={newAccommodation.price}
+              onChange={(e) => setNewAccommodation({ ...newAccommodation, price: e.target.value })}
+              fullWidth
+              sx={{
+                borderRadius: "8px",
+                "& .MuiInputBase-root": {
+                  borderRadius: "8px",
+                  border: "2px solid purple",
+                  padding: "10px",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "purple",
+                },
+              }}
+            />
           </Grid>
-        </Box>
+  
+          {/* Image Upload Input */}
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              component="label"
+              sx={{ backgroundColor: 'purple', color: 'white' }}
+            >
+              Upload Image
+              <input
+                type="file"
+                hidden
+                onChange={handleImageChange}
+              />
+            </Button>
+  
+            {/* Upload button */}
+            <Button
+              variant="contained"
+              sx={{ margin: 2, backgroundColor: 'black', color: 'white' }}
+              onClick={handleUploadImage}
+            >
+              Upload to database
+            </Button>
+          </Grid>
+  
+          {/* Add Room Button */}
+          <Grid item xs={12}>
+            <Button
+              variant="contained"
+              onClick={handleAddAccommodation}
+              startIcon={<Add />}
+              sx={{
+                backgroundColor: "black",
+                "&:hover": {
+                  backgroundColor: "#6a0dad",
+                },
+                fontSize: "16px",
+                padding: "10px 20px",
+                borderRadius: "8px",
+              }}
+            >
+              Add Room
+            </Button>
+          </Grid>
+        </Grid>
+  
+        {/* Displaying accommodations */}
+        <Grid container spacing={4} sx={{ marginTop: 2 }}>
+          {accommodations.map((acc) => (
+            <Grid item xs={12} sm={6} md={3} key={acc.id}>
+              <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
+                <Card sx={{ border: "2px solid purple", borderRadius: "8px", boxShadow: 3 }}>
+                  <CardMedia component="img" height="140" image={acc.image} alt={acc.type} />
+                  <CardContent>
+                    <Typography variant="h5">{acc.type}</Typography>
+                    <Typography variant="body2">Price: R{acc.price}</Typography>
+                  </CardContent>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", padding: "8px" }}>
+                    <IconButton onClick={() => handleDeleteAccommodation(acc.id)}>
+                      <Delete />
+                    </IconButton>
+                    <IconButton onClick={() => handleViewMore(acc.id)}>
+                      <Visibility />
+                    </IconButton>
+                  </Box>
+                </Card>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
       )}
 
       {/* Bookings Tab */}
@@ -869,22 +964,51 @@ const handleSubmitReply = async (reviewId, replyText) => {
                   },
                 }}
               />
-              <TextField
-                label="Image URL"
-                value={selectedAccommodation.image || ""}
-                name="image"
-                onChange={handleChange}
-                fullWidth
-                sx={{
-                  marginBottom: 2,
-                  borderRadius: "8px",
-                  "& .MuiInputBase-root": {
-                    borderRadius: "8px",
-                    border: "1px solid purple",
-                    padding: "10px",
-                  },
-                }}
+              
+              <Box sx={{ marginBottom: 2 }}>
+              <Typography variant="subtitle1">Current Image:</Typography>
+              {selectedAccommodation.image && (
+                <img 
+                  src={selectedAccommodation.image} 
+                  alt="Accommodation" 
+                  style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', marginBottom: '10px' }} 
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: 'none' }}
+                id="dialog-image-upload"
               />
+              <label htmlFor="dialog-image-upload">
+                <Button
+                  variant="contained"
+                  component="span"
+                  sx={{ backgroundColor: 'purple', color: 'white', marginRight: 2 }}
+                >
+                  Select New Image
+                </Button>
+              </label>
+              {imageFile && (
+                <Typography variant="body2" sx={{ marginTop: 1 }}>
+                  Selected: {imageFile.name}
+                </Typography>
+              )}
+              <Button
+                variant="contained"
+                onClick={handleUploadImage}
+                disabled={!imageFile}
+                sx={{ marginTop: 2, backgroundColor: 'black', color: 'white' }}
+              >
+                Upload New Image
+              </Button>
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <Typography variant="body2" sx={{ marginTop: 1 }}>
+                  Upload progress: {uploadProgress.toFixed(0)}%
+                </Typography>
+              )}
+            </Box>
               <TextField
                 label="Amenities (comma-separated)"
                 value={selectedAccommodation.amenities?.join(", ")}
