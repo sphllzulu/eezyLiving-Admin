@@ -370,8 +370,8 @@ const AdminPanel = () => {
   //   }
   // };
   const handleAddAccommodation = async () => {
-    if (!newAccommodation.type || !newAccommodation.price || !newAccommodation.image) {
-      alert("Please fill in all fields and upload an image.");
+    if (!newAccommodation.type || !newAccommodation.price) {
+      alert("Please fill in all fields.");
       return;
     }
   
