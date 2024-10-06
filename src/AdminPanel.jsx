@@ -636,7 +636,7 @@ const handleSubmitReply = async (reviewId, replyText) => {
               <TableHead>
                 <TableRow>
                   <TableCell>Booking ID</TableCell>
-                  <TableCell>UserID ID</TableCell>
+                  <TableCell>UserID</TableCell>
                   <TableCell>User</TableCell>
                   <TableCell>Room Type</TableCell>
                   <TableCell>Price</TableCell>
@@ -752,6 +752,7 @@ const handleSubmitReply = async (reviewId, replyText) => {
                       variant="contained" 
                       color="primary" 
                       onClick={() => handleOpenReplyDialog(review.id)}
+                      sx={{background:'purple'}}
                     >
                       {review.adminReply ? 'Edit Reply' : 'Reply'}
                     </Button>
