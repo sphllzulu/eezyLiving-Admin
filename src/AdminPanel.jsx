@@ -595,93 +595,106 @@ const handleSubmitReply = async (reviewId, replyText) => {
   
         {/* Form for adding accommodations */}
         <Grid container spacing={2} sx={{ marginTop: 2 }}>
-          {/* Type Input */}
-          <Grid item xs={4}>
-            <TextField
-              label="Type"
-              value={newAccommodation.type}
-              onChange={(e) => setNewAccommodation({ ...newAccommodation, type: e.target.value })}
-              fullWidth
-              sx={{
-                borderRadius: "8px",
-                "& .MuiInputBase-root": {
-                  borderRadius: "8px",
-                  border: "2px solid purple",
-                  padding: "10px",
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "purple",
-                },
-              }}
-            />
-          </Grid>
-  
-          {/* Price Input */}
-          <Grid item xs={4}>
-            <TextField
-              label="Price"
-              value={newAccommodation.price}
-              onChange={(e) => setNewAccommodation({ ...newAccommodation, price: e.target.value })}
-              fullWidth
-              sx={{
-                borderRadius: "8px",
-                "& .MuiInputBase-root": {
-                  borderRadius: "8px",
-                  border: "2px solid purple",
-                  padding: "10px",
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "purple",
-                },
-              }}
-            />
-          </Grid>
-  
-          {/* Image Upload Input */}
-          <Grid item xs={4}>
-            <Button
-              variant="contained"
-              component="label"
-              sx={{ backgroundColor: 'purple', color: 'white' }}
-            >
-              Upload Image
-              <input
-                type="file"
-                hidden
-                onChange={handleImageChange}
-              />
-            </Button>
-  
-            {/* Upload button */}
-            <Button
-              variant="contained"
-              sx={{ margin: 2, backgroundColor: 'black', color: 'white' }}
-              onClick={handleUploadImage}
-            >
-              Upload to database
-            </Button>
-          </Grid>
-  
-          {/* Add Room Button */}
-          <Grid item xs={12}>
-            <Button
-              variant="contained"
-              onClick={handleAddAccommodation}
-              startIcon={<Add />}
-              sx={{
-                backgroundColor: "black",
-                "&:hover": {
-                  backgroundColor: "#6a0dad",
-                },
-                fontSize: "16px",
-                padding: "10px 20px",
-                borderRadius: "8px",
-              }}
-            >
-              Add Room
-            </Button>
-          </Grid>
-        </Grid>
+  {/* Type Input */}
+  <Grid item xs={12} sm={6} md={4}>
+    <TextField
+      label="Type"
+      value={newAccommodation.type}
+      onChange={(e) => setNewAccommodation({ ...newAccommodation, type: e.target.value })}
+      fullWidth
+      sx={{
+        borderRadius: "8px",
+        "& .MuiInputBase-root": {
+          borderRadius: "8px",
+          border: "2px solid purple",
+          padding: "10px",
+        },
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "purple",
+        },
+      }}
+    />
+  </Grid>
+
+  {/* Price Input */}
+  <Grid item xs={12} sm={6} md={4}>
+    <TextField
+      label="Price"
+      value={newAccommodation.price}
+      onChange={(e) => setNewAccommodation({ ...newAccommodation, price: e.target.value })}
+      fullWidth
+      sx={{
+        borderRadius: "8px",
+        "& .MuiInputBase-root": {
+          borderRadius: "8px",
+          border: "2px solid purple",
+          padding: "10px",
+        },
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "purple",
+        },
+      }}
+    />
+  </Grid>
+
+  {/* Image Upload Input */}
+  <Grid item xs={12} md={4}>
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+      <Button
+        variant="contained"
+        component="label"
+        fullWidth
+        sx={{ 
+          backgroundColor: 'purple', 
+          color: 'white',
+          height: '56px', // Match height with TextField
+        }}
+      >
+        Upload Image
+        <input
+          type="file"
+          hidden
+          onChange={handleImageChange}
+        />
+      </Button>
+
+      {/* Upload button */}
+      <Button
+        variant="contained"
+        fullWidth
+        onClick={handleUploadImage}
+        sx={{ 
+          backgroundColor: 'black', 
+          color: 'white',
+          height: '56px', // Match height with TextField
+        }}
+      >
+        Upload to database
+      </Button>
+    </Box>
+  </Grid>
+
+  {/* Add Room Button */}
+  <Grid item xs={12}>
+    <Button
+      variant="contained"
+      onClick={handleAddAccommodation}
+      startIcon={<Add />}
+      fullWidth
+      sx={{
+        backgroundColor: "black",
+        "&:hover": {
+          backgroundColor: "#6a0dad",
+        },
+        fontSize: { xs: "14px", sm: "16px" },
+        padding: { xs: "8px 16px", sm: "10px 20px" },
+        borderRadius: "8px",
+      }}
+    >
+      Add Room
+    </Button>
+  </Grid>
+</Grid>
   
         {/* Displaying accommodations */}
         <Grid container spacing={4} sx={{ marginTop: 2 }}>
