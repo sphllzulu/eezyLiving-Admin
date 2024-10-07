@@ -671,7 +671,11 @@ const handleSubmitReply = async (reviewId, replyText) => {
       >
         Upload to database
       </Button>
+      
     </Box>
+    <Typography variant="body2" sx={{ marginTop: 1 }}>
+                  Upload progress: {uploadProgress.toFixed(0)}%
+                </Typography>
   </Grid>
 
   {/* Add Room Button */}
