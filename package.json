@@ -10,7 +10,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "concurrently \"npm run dev\" \"node src/mailer.cjs\""
+    "start": "concurrently \"npm run dev\" \"node backend/mailer.cjs\""
+    
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

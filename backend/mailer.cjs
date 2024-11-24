@@ -89,7 +89,7 @@ app.post('/api/send-email', async (req, res) => {
 
   try {
     let info = await transporter.sendMail({
-      from: `"Eezy Living" <${process.env.EMAIL_USER}>`, // Fixed string interpolation
+      from: `"Eezy Living" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       text: text,
@@ -99,7 +99,7 @@ app.post('/api/send-email', async (req, res) => {
     res.status(200).send('Email sent successfully');
   } catch (error) {
     console.error('Error sending email:', error);
-    res.status(500).send(`Error sending email: ${error.message}`); // More detailed error
+    res.status(500).send(`Error sending email: ${error.message}`); 
   }
 });
 
