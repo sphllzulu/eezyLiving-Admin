@@ -2,6 +2,9 @@
 
 The **EezyLiving Admin Panel** is a secure interface for administrators to manage accommodations, bookings, and user information for the EezyLiving hotel booking application. This panel provides functionality to add, update, and manage accommodations and reservations.
 
+## Deployed app
+Click here to use and explore the app: https://eezyliving-admin-3.onrender.com
+
 ## Table of Contents
 
 - [Features](#features)
