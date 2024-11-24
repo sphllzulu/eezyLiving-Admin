@@ -73,7 +73,8 @@ const AdminPanel = () => {
   // const [reviews, setReviews] = useState([]); 
   const [openReplyDialog, setOpenReplyDialog] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState(null);
-
+  
+  const API_URL = import.meta.env.VITE_API_URL
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -179,7 +180,7 @@ const AdminPanel = () => {
       );
 
       // Send a cancellation email
-      await axios.post("http://localhost:3001/api/send-email", {
+      await axios.post(`${API_URL}/send-email`, {
         to: userEmail,
         subject: "Booking Cancellation Confirmation",
         text: `Your booking with ID ${bookingIdString} has been cancelled.`,
