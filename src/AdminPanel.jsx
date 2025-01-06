@@ -261,7 +261,7 @@ const AdminPanel = () => {
       );
 
       // Send a confirmation email
-      await axios.post("http://localhost:3001/api/send-email", {
+      await axios.post(`${API_URL}/api/send-email`, {
         to: userEmail,
         subject: "Booking Confirmation",
         text: `Your booking with ID ${bookingIdString} has been confirmed.`,
