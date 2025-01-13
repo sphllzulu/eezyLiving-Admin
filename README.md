@@ -22,6 +22,10 @@ Click here to use and explore the app: https://eezyliving-admin-3.onrender.com
 
 ## Features
 
+## Screenshot
+![hotelAdmin](https://github.com/user-attachments/assets/bee08c6f-0caa-4141-8573-45932c06e63d)
+
+
 ### Admin Functionality
 
 1. **Admin Authentication**
