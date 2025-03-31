@@ -5,21 +5,6 @@ The **EezyLiving Admin Panel** is a secure interface for administrators to manag
 ## Deployed app
 Click here to use and explore the app: https://eezyliving-admin-3.onrender.com
 
-## Table of Contents
-
-- [Features](#features)
-- [Technologies](#technologies)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Admin Access](#admin-access)
-- [State Management](#state-management)
-- [Data Storage](#data-storage)
-- [Security](#security)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
 ## Features
 
 ## Screenshot
@@ -84,9 +69,11 @@ Click here to use and explore the app: https://eezyliving-admin-3.onrender.com
 
    ```bash
    npm install
+   ```
 
 3. Start the project:
 
    ```bash
-npm run dev     
+    npm run dev     
+   ```
 
