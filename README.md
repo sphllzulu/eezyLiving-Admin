@@ -9,6 +9,8 @@ Click here to use and explore the app: https://eezyliving-admin-3.onrender.com
 
 ## Screenshot
 ![hotelAdmin](https://github.com/user-attachments/assets/bee08c6f-0caa-4141-8573-45932c06e63d)
+![Image](https://github.com/user-attachments/assets/ff4f5c89-1b6e-4057-9126-ba642bcaefc9)
+![Image](https://github.com/user-attachments/assets/3a2ff0c4-c479-47f9-98c4-738c4947e169)
 
 
 ### Admin Functionality
